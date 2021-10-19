@@ -8,6 +8,33 @@ class store():
         self.storeurl = storeurl
         self.storeid = storeid
 
+class course():
+    def __init__(self, dept, course, section) -> None:
+        self.department = dept
+        self.course = course
+        self.section = section
+
+class material():
+    #b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']
+    def __init__(self, publisher, author, title, edition, isbn, pricerange):
+        self.publisher = publisher
+        self.author = author
+        self.title = title
+        self.edition = edition
+        self.isbn = isbn
+        self.pricerange = pricerange
+    
+    def __str__(self):
+        format = f"""
+        Title: {self.title}
+        Edition: {self.edition}
+        Publisher: {self.publisher}
+        ISBN: {self.isbn}
+        Price range: {self.pricerange}
+        Author: {self.author}
+        """
+        return format
+
 def headered_get_request(url):
     header = Headers(
         browser="chrome",  # Generate only Chrome UA
@@ -15,6 +42,15 @@ def headered_get_request(url):
         headers=True  # generate misc headers
     )
     r = requests.get(url, headers=header.generate())
+    return r
+
+def headered_post_request(url, payload):
+    header = Headers(
+        browser="chrome",  # Generate only Chrome UA
+        os="win",  # Generate ony Windows platform
+        headers=True  # generate misc headers
+    )
+    r = requests.post(url, headers=header.generate(), json=payload)
     return r
 
 def get_all_courses(college, term):
@@ -81,22 +117,56 @@ def term_selector(school):
     try:
         selection = int(selection) - 1
     except:
-        print("Error.")
+        print("Invalid term entered.")
         exit()
-    print(terms_ordered)
+    if selection + 1 > len(terms_ordered):
+        print("Invalid term entered.")
+        exit()
     term = terms_ordered[selection][0]
     return term
 
-def get_books_for(college, termid, courses):
+#TODO: add blackboard html parser
+def get_courses(college, termid):
+    courses = []
+    while True:
+        ans = input("Please input your courses in a format such as CISC-371-DFA. Enter \"stop\" to stop: ")
+        if ans.lower() == "stop":
+            break
+        if ans.count('-') < 2:
+            print("Invalid course input.")
+            continue
+        ans = ans.split('-')
+        courses.append(course(ans[0], ans[1], ans[2]))
+    return courses
+
+#TODO: blackboard input
+def get_books(college, termid, courses):
+    books = []
     url = f"https://svc.bkstr.com/courseMaterial/results?storeId={college.storeid}&langId=-1&catalogId=11077&requestType=DDCSBrowse"
-    print(url)
-    r = headered_get_request(url).json()
+    course_jsons = []
+    for i in courses:
+        secondary = f'{i.department}/{i.course}/{i.section}'
+        course_jsons.append({"secondaryvalues":secondary,
+            "divisionDisplayName":"",
+            "departmentDisplayname":i.department,
+            "courseDisplayName":i.course,
+            "sectionDisplayName":i.section
+        })
+    payload = {
+        "storeId": college.storeid,
+        "termId": termid,
+        "programId": "1061",
+        "courses": course_jsons
+    }
+    r = headered_post_request(url, payload).json()
+    for b in r[0]['courseSectionDTO'][0]['courseMaterialResultsList']:
+        books.append(material(b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
+    return books
 
 if __name__ == "__main__":
     college = search(input("Please enter your college name: "))
     term = term_selector(college)
-    courses = get_all_courses(college, term)
-    get_books_for(college, term, courses)
-
-# https://www.bkstr.com/mercydobbsferrystore/course-materials-results?shopBy=course&divisionDisplayName=&departmentDisplayName=CISC&courseDisplayName=371&sectionDisplayName=DFA&programId=1061&termId=100070972
-#POST to this ^^ with payload ie {"storeId":"11553","termId":"100070972","programId":"1061","courses":[{"secondaryvalues":"CISC/311/DFA","divisionDisplayName":"","departmentDisplayName":"CISC","courseDisplayName":"311","sectionDisplayName":"DFA"},{"secondaryvalues":"CISC/231/DFA","divisionDisplayName":"","departmentDisplayName":"CISC","courseDisplayName":"231","sectionDisplayName":"DFA"}]}
+    courses = get_courses(college, term)
+    books = get_books(college, term, courses)
+    for b in books:
+        print(str(b))
