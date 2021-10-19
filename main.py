@@ -141,6 +141,23 @@ def get_courses(college, termid):
         courses.append(course(ans[0], ans[1], ans[2]))
     return courses
 
+def ellucian_parse(filename):
+    courses = []
+    try:
+        with open(filename, 'r') as f:
+            html = f.read()
+            soup = BeautifulSoup(html, "lxml")
+    except Exception as e:
+        print("Problem reading file: ", str(e))
+    finds = soup.findAll('caption')
+    for f in finds:
+        f = f.text
+        if '-' in f:
+            f = f.split('-')
+            course = f[1].strip().replace(' ', '-').strip() + '-' + f[2].strip()
+            courses.append(course)
+    return courses
+    
 def get_books(college, termid, courses):
     if not courses:
         print("Courses list was empty. Cannot continue.")
@@ -168,9 +185,10 @@ def get_books(college, termid, courses):
     return books
 
 if __name__ == "__main__":
-    college = search(input("Please enter your college name: "))
-    term = term_selector(college)
-    courses = get_courses(college, term)
-    books = get_books(college, term, courses)
-    for b in books:
-        print(str(b))
+    #college = search(input("Please enter your college name: "))
+    #term = term_selector(college)
+    #courses = get_courses(college, term)
+    #books = get_books(college, term, courses)
+    #for b in books:
+    #    print(str(b))
+    ellucian_parse('mercycon.html')
