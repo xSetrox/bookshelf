@@ -157,7 +157,7 @@ def ellucian_parse(filename):
             course = f[1].strip().replace(' ', '-').strip() + '-' + f[2].strip()
             courses.append(course)
     return courses
-    
+
 def get_books(college, termid, courses):
     if not courses:
         print("Courses list was empty. Cannot continue.")
@@ -185,10 +185,9 @@ def get_books(college, termid, courses):
     return books
 
 if __name__ == "__main__":
-    #college = search(input("Please enter your college name: "))
-    #term = term_selector(college)
-    #courses = get_courses(college, term)
-    #books = get_books(college, term, courses)
-    #for b in books:
-    #    print(str(b))
-    ellucian_parse('mercycon.html')
+    college = search(input("Please enter your college name: "))
+    term = term_selector(college)
+    courses = get_courses(college, term)
+    books = get_books(college, term, courses)
+    for b in books:
+        print(str(b))
