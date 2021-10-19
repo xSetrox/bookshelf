@@ -113,16 +113,18 @@ def term_selector(school):
     print("Terms: ")
     for x,t in enumerate(terms_ordered, 1):
         print(f'{x}. {t[1]}')
-    selection = input("Please enter the number of the term you are buying book for: ")
-    try:
-        selection = int(selection) - 1
-    except:
-        print("Invalid term entered.")
-        exit()
-    if selection + 1 > len(terms_ordered):
-        print("Invalid term entered.")
-        exit()
-    term = terms_ordered[selection][0]
+    while True:
+        selection = input("Please enter the number of the term you are buying book for: ")
+        try:
+            selection = int(selection) - 1
+        except:
+            print("Invalid term entered.")
+            continue
+        if selection < 1 or selection + 1 > len(terms_ordered):
+            print("Invalid term entered.")
+            continue
+        term = terms_ordered[selection][0]
+        break
     return term
 
 #TODO: add blackboard html parser
@@ -139,8 +141,10 @@ def get_courses(college, termid):
         courses.append(course(ans[0], ans[1], ans[2]))
     return courses
 
-#TODO: blackboard input
 def get_books(college, termid, courses):
+    if not courses:
+        print("Courses list was empty. Cannot continue.")
+        return
     books = []
     url = f"https://svc.bkstr.com/courseMaterial/results?storeId={college.storeid}&langId=-1&catalogId=11077&requestType=DDCSBrowse"
     course_jsons = []
