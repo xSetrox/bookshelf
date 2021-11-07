@@ -18,7 +18,8 @@ class course():
 
 class material():
     #b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']
-    def __init__(self, publisher, author, title, edition, isbn, pricerange):
+    def __init__(self, forclass, publisher, author, title, edition, isbn, pricerange):
+        self.forclass = forclass
         self.publisher = publisher
         self.author = author
         self.title = title
@@ -160,10 +161,12 @@ def get_books(college, termid, courses):
     payload = {
         "storeId": college.storeid,
         "termId": termid,
-        "programId": "1061",
+        "programId": "1061",  
         "courses": course_jsons
     }
     r = headered_post_request(url, payload).json()
+    fcp = r[0]['courseSectionDTO'][0]
+    forcourse = f"{fcp['department']}-{fcp['course']}-{fcp['section']}"
     for b in r[0]['courseSectionDTO'][0]['courseMaterialResultsList']:
-        books.append(material(b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
+        books.append(material(forcourse, b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
     return books
