@@ -3,10 +3,12 @@ from fake_headers import Headers
 from difflib import get_close_matches
 from bs4 import BeautifulSoup
 
+stores = []
 class store():
-    def __init__(self, storeurl, storeid) -> None:
+    def __init__(self, storeurl, storeid, storename) -> None:
         self.storeurl = storeurl
         self.storeid = storeid
+        self.storename = storename
 
 class course():
     def __init__(self, dept, course, section) -> None:
@@ -79,11 +81,10 @@ def get_college_ids():
     r = headered_get_request(all_colleges_dir).json()
     request_json = r['storeResultList']
     for key in request_json:
-        stores[key['storeName']] = store(key['storeUrl'], key['storeNumber'])
+        stores[key['storeName']] = store(key['storeUrl'], key['storeNumber'], key['storeName'])
     return stores
 
-stores = get_college_ids()
-def search(query):
+def search(query, stores):
     query = query.lower()
     for s in stores:
         if s.lower() == query:
@@ -97,7 +98,7 @@ def search(query):
             print("Sorry, college not found.")
             return
 
-def term_selector(school):
+def get_terms(school):
     r = headered_get_request("https://svc.bkstr.com/courseMaterial/info?storeId=" + school.storeid).json()
     request_json = r['finalData']['campus']
     if len(request_json) < 2:
@@ -106,26 +107,9 @@ def term_selector(school):
     if len(program) < 2:
         program = program[0]
     terms = {}
-    terms_ordered = []
-    for x,t in enumerate(program['term']):
-        terms_ordered.append([])
-        terms_ordered[x] = [t['termId'], t['termName']]
-    print("Terms: ")
-    for x,t in enumerate(terms_ordered, 1):
-        print(f'{x}. {t[1]}')
-    while True:
-        selection = input("Please enter the number of the term you are buying book for: ")
-        try:
-            selection = int(selection) - 1
-        except:
-            print("Invalid term entered.")
-            continue
-        if selection < 1 or selection + 1 > len(terms_ordered):
-            print("Invalid term entered.")
-            continue
-        term = terms_ordered[selection][0]
-        break
-    return term
+    for t in program['term']:
+        terms[t['termName']] = t['termId']
+    return terms
 
 #TODO: add blackboard html parser
 def get_courses(college, termid):
@@ -183,11 +167,3 @@ def get_books(college, termid, courses):
     for b in r[0]['courseSectionDTO'][0]['courseMaterialResultsList']:
         books.append(material(b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
     return books
-
-if __name__ == "__main__":
-    college = search(input("Please enter your college name: "))
-    term = term_selector(college)
-    courses = get_courses(college, term)
-    books = get_books(college, term, courses)
-    for b in books:
-        print(str(b))
