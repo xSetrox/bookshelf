@@ -4,7 +4,12 @@ import tkinter.messagebox
 from typing import ClassVar
 import tkinter as tk
 from PIL import ImageTk, Image
+import csv
 import main as bsh
+import webbrowser
+
+# all of this code can probably benefit from making some classes. but im lazy and i wanted to rush a prototype.
+all_optional_frames = []
 colors = {'good':'#51ff99', 'skeptical':'#ff9900', 'bad':'#FA1E3B'}
 colleges = bsh.get_college_ids()
 root = Tk()
@@ -15,6 +20,7 @@ root.update()
 root.minsize(500, 500)
 search_frame = Frame()
 search_frame.pack()
+all_optional_frames.append(search_frame)
 college = None
 courses = []
 course_listings = {}
@@ -22,6 +28,7 @@ termid = 0
 root.title("bookshelf")
 c_list_lbl = ttk.Label(search_frame, text="Enter your college: ")
 c_list_lbl.pack(side=LEFT)
+all_optional_frames.append(c_list_lbl)
 c_search_btn = None
 done_btn = None
 term_btn = None
@@ -29,6 +36,7 @@ course_entry_lbl = None
 term_options = None
 c_search = Entry(search_frame)
 c_search.pack(side=LEFT)
+all_optional_frames.append(c_search)
 
 def search_from_box(a):
     pass
@@ -54,6 +62,7 @@ def add_course(a, cname, entrybox):
     else:
         course_frame = Frame()
         course_frame.pack()
+        all_optional_frames.append(course_frame)
         entrybox.delete(0, 'end')
         cnamespl = cname.split('-')
         course_obj = bsh.course(cnamespl[0], cnamespl[1], cnamespl[2])
@@ -65,29 +74,99 @@ def add_course(a, cname, entrybox):
         course_listings[cname] = [course_label, course_del_btn, course_frame]
         done_btn.config(state=NORMAL)
 
+def to_spreadsheet(data):
+    file = open('./My course materials.csv', 'w')
+    writer = csv.writer(file)
+    headers = ['For course', 'Publisher', 'Author', 'Title', 'Edition', 'ISBN', 'Price']
+    writer.writerow(headers)
+    for e in data:
+        writer.writerow(e)
+    file.close()
+    tkinter.messagebox.showinfo('Spreadsheet saved','Your spreadsheet has been exported to \"My course Materials.csv\"')
+
+def amazon_isbn_search(data):
+    for e in data:
+        webbrowser.open("https://www.amazon.com/s?k=" + e[5])
+
+# remember when i said all of this code can probably benefit from making some classes? this especially.. yikes.
+def start_over(book_div, book_tree, post_frame):
+    global search_frame
+    global college
+    global courses
+    global course_listings
+    global termid
+    global c_list_lbl
+    global c_search_btn
+    global done_btn
+    global term_btn
+    global course_entry_lbl
+    global term_options
+    global c_search
+    book_div.pack_forget()
+    book_tree.pack_forget()
+    post_frame.pack_forget()
+    root.minsize(500, 500)
+    search_frame = Frame()
+    search_frame.pack()
+    all_optional_frames.append(search_frame)
+    college = None
+    courses = []
+    course_listings = {}
+    termid = 0
+    root.title("bookshelf")
+    c_list_lbl = ttk.Label(search_frame, text="Enter your college: ")
+    c_list_lbl.pack(side=LEFT)
+    all_optional_frames.append(c_list_lbl)
+    c_search_btn = None
+    done_btn = None
+    term_btn = None
+    course_entry_lbl = None
+    term_options = None
+    c_search = Entry(search_frame)
+    c_search.pack(side=LEFT)
+    all_optional_frames.append(c_search)
+    c_search_btn = Button(search_frame, text="Search", bg=colors['good'], command = lambda: search_from_box(None))
+    c_search_btn.pack(side=LEFT)
+    root.unbind('<Return>')
+    root.bind('<Return>', search_from_box)
+
 def book_search(courses):
-    book_div = Frame()
-    book_div.pack()
-    books_lbl = ttk.Label(book_div, text="Your required materials:")
-    books_lbl.place(relx=0.5, rely=0.5, anchor=CENTER)
-    # books.append(material(b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
     books = bsh.get_books(college, termid, courses)
-    book_tree = Frame()
-    book_tree.pack()
-    books_tbl = ttk.Treeview(book_tree)
-    books_tbl['columns'] = ('For course', 'Publisher', 'Author', 'Title', 'Edition', 'ISBN', 'Price')
-    books_tbl.heading('#0', text='', anchor=CENTER)
-    books_tbl.column('#0', width=0, stretch=NO)
-    for c in books_tbl['columns']:
-        books_tbl.heading(c, text=c, anchor=CENTER)
-        books_tbl.column(c, anchor=CENTER, stretch=YES)
-    for x,b in enumerate(books):
-        books_tbl.insert(parent='',index='end',iid=x,text='', values=(b.forclass, b.publisher, b.author, b.title, b.edition, b.isbn, b.pricerange))
-    for e in course_listings.keys():
-        for el in course_listings[e]:
-            el.pack_forget()
-    course_entry_lbl.config(text="Your required materials:")
-    books_tbl.pack()
+    if not books:
+        tkinter.messagebox.showinfo('No materials found','No materials were found for any of your courses.')
+    else:
+        books_export = []
+        book_div = Frame()
+        book_div.pack()
+        books_lbl = ttk.Label(book_div, text="Your required materials:")
+        books_lbl.pack()
+        # books.append(material(b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
+        book_tree = Frame()
+        book_tree.pack()
+        books_tbl = ttk.Treeview(book_tree)
+        books_tbl['columns'] = ('For course', 'Publisher', 'Author', 'Title', 'Edition', 'ISBN', 'Price')
+        books_tbl.heading('#0', text='', anchor=CENTER)
+        books_tbl.column('#0', width=0, stretch=NO)
+        for c in books_tbl['columns']:
+            books_tbl.heading(c, text=c, anchor=CENTER)
+            books_tbl.column(c, anchor=CENTER, stretch=NO)
+        for x,b in enumerate(books):
+            data = [b.forclass, b.publisher, b.author, b.title, b.edition, b.isbn, b.pricerange]
+            books_export.append(data)
+            books_tbl.insert(parent='',index='end',iid=x,text='', values=data)
+        for e in all_optional_frames:
+            e.pack_forget()
+        course_entry_lbl.config(text="Your required materials:")
+        books_tbl.pack()
+        post_frame = Frame()
+        post_frame.pack()
+        spreadsheet_btn = Button(post_frame, text="Spreadsheet", bg=colors['good'], command = lambda: to_spreadsheet(books_export))
+        spreadsheet_btn.pack(side=LEFT)
+        amazon_btn = Button(post_frame, text="Amazon", bg=colors['skeptical'], command = lambda: amazon_isbn_search(books_export))
+        amazon_btn.pack(side=LEFT)
+        startover_btn = Button(post_frame, text="Start over", bg=colors['bad'], command = lambda: start_over(book_div, book_tree, post_frame))
+        startover_btn.pack(side=LEFT)
+
 
 
 def init_course_select(term):
@@ -96,8 +175,10 @@ def init_course_select(term):
     global course_entry_lbl
     instructional_div = Frame()
     instructional_div.pack()
+    all_optional_frames.append(instructional_div)
     course_select_frame = Frame()
     course_select_frame.pack()
+    all_optional_frames.append(course_select_frame)
     termid = term
     term_btn.config(state=DISABLED)
     term_options.config(state=DISABLED)
@@ -112,6 +193,7 @@ def init_course_select(term):
     done_btn.config(state=DISABLED)
     course_div = Frame()
     course_div.pack()
+    all_optional_frames.append(course_div)
     course_entry_lbl = ttk.Label(course_div, text="Currently added courses:")
     course_entry_lbl.pack()
     root.unbind('<Return>')
@@ -122,6 +204,7 @@ def search_from_box(a):
     if search:
         search_res_frame = Frame(root)
         search_res_frame.pack()
+        all_optional_frames.append(search_res_frame)
         c_search_btn.config(state=DISABLED)
         c_search.config(state=DISABLED)
         c_search.delete(0, END)

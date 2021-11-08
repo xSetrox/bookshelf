@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import requests
 from fake_headers import Headers
 from difflib import get_close_matches
@@ -60,7 +61,6 @@ def get_all_courses(college, term):
     print("Gathering courses for this term...")
     #r = headered_get_request(f"https://svc.bkstr.com/courseMaterial/courses?storeId={college.storeid}&termId={term}").json()
     url = f"https://svc.bkstr.com/courseMaterial/courses?storeId={college.storeid}&termId={term}"
-    print(url)
     r = headered_get_request(url).json()
     course_sections = {}
     courses = r['finalDDCSData']['division'][0]['department']
@@ -94,9 +94,8 @@ def search(query, stores):
         # todo: fix close matches
         close_matches = get_close_matches(query, stores.keys())
         if close_matches:
-            print(close_matches)
+            return stores[close_matches[0]]
         else:
-            print("Sorry, college not found.")
             return
 
 def get_terms(school):
@@ -120,7 +119,6 @@ def get_courses(college, termid):
         if ans.lower() == "stop":
             break
         if ans.count('-') < 2:
-            print("Invalid course input.")
             continue
         ans = ans.split('-')
         courses.append(course(ans[0], ans[1], ans[2]))
@@ -145,28 +143,37 @@ def ellucian_parse(filename):
 
 def get_books(college, termid, courses):
     if not courses:
-        print("Courses list was empty. Cannot continue.")
         return
     books = []
     url = f"https://svc.bkstr.com/courseMaterial/results?storeId={college.storeid}&langId=-1&catalogId=11077&requestType=DDCSBrowse"
     course_jsons = []
+    # we need to build the json POST request by giving the 'courses' key a list of courses
     for i in courses:
         secondary = f'{i.department}/{i.course}/{i.section}'
-        course_jsons.append({"secondaryvalues":secondary,
+        course_jsons.append({
             "divisionDisplayName":"",
-            "departmentDisplayname":i.department,
+            "departmentDisplayName":i.department,
             "courseDisplayName":i.course,
-            "sectionDisplayName":i.section
+            "sectionDisplayName":i.section,
+            "secondaryvalues":secondary
         })
     payload = {
+        "courses": course_jsons,
+        "programId": "1061", 
         "storeId": college.storeid,
-        "termId": termid,
-        "programId": "1061",  
-        "courses": course_jsons
+        "termId": termid 
+
     }
     r = headered_post_request(url, payload).json()
-    fcp = r[0]['courseSectionDTO'][0]
-    forcourse = f"{fcp['department']}-{fcp['course']}-{fcp['section']}"
-    for b in r[0]['courseSectionDTO'][0]['courseMaterialResultsList']:
-        books.append(material(forcourse, b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
-    return books
+    fcp = r[0]['courseSectionDTO']
+    for x in fcp:
+        forcourse = f"{x['department']}-{x['course']}-{x['section']}"
+        if x['courseSectionStatus']['code'] == "500":
+            books.append(material(forcourse, '', '', 'Course not found', '', '', ''))
+            continue
+        if 'courseMaterialResultsList' in x:
+            for b in x['courseMaterialResultsList']:
+                books.append(material(forcourse, b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
+        else:
+            books.append(material(forcourse, '', '', 'No materials found for this course', '', '', ''))
+    return books 
