@@ -5,13 +5,16 @@ Bookshelf is a Python 3+ GUI tool for automatically gathering needed materials f
 1. Clone the repo or download a release.  
 2. Open a command prompt and CD into wherever you installed Bookshelf
 3. install requirements with `pip install -r requirements.txt`
-### Requirements  
+## Requirements  
 ```
 requests==2.24.0
 fake_headers==1.0.2
 beautifulsoup4==4.10.0
 Pillow==8.4.0
 ```
+## Usage 
+Run gui.py and follow the instructions.  
+
 ### Import from school portal
 You will need to go to your "student detail schedule" page on your school portal for the semester you selected, then hit ctrl+s > save as html only. Then when prompted, click "import from portal" to import that file. If supported, all your courses will fill in, if not you will be notified that it's not supported.  
 ### College not found
