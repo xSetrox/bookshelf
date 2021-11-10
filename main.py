@@ -124,7 +124,7 @@ def get_courses(college, termid):
         courses.append(course(ans[0], ans[1], ans[2]))
     return courses
 
-def ellucian_parse(filename):
+def portal_parse(filename):
     courses = []
     try:
         with open(filename, 'r') as f:
@@ -132,6 +132,7 @@ def ellucian_parse(filename):
             soup = BeautifulSoup(html, "lxml")
     except Exception as e:
         print("Problem reading file: ", str(e))
+        return None
     finds = soup.findAll('caption')
     for f in finds:
         f = f.text

@@ -5,11 +5,13 @@ from PIL import ImageTk, Image
 import csv
 import main as bsh
 import webbrowser
+from tkinter import filedialog as fd
+from tkinter.messagebox import showinfo
 
 class BookshelfGui():
     def __init__(self) -> None:
         self.all_optional_frames = []
-        self.colors = {'good':'#51ff99', 'skeptical':'#ff9900', 'bad':'#FA1E3B'}
+        self.colors = {'good':'#51ff99', 'skeptical':'#ff9900', 'bad':'#FA1E3B', 'magenta':'#fb3dff'}
         self.colleges = bsh.get_college_ids()
         self.root = Tk()
         self.logo = ImageTk.PhotoImage(Image.open('./bookshelf.png'))
@@ -55,7 +57,8 @@ class BookshelfGui():
             course_frame = Frame()
             course_frame.pack()
             self.all_optional_frames.append(course_frame)
-            entrybox.delete(0, 'end')
+            if entrybox:
+                entrybox.delete(0, 'end')
             cnamespl = cname.split('-')
             course_obj = bsh.course(cnamespl[0], cnamespl[1], cnamespl[2])
             self.courses.append(course_obj)
@@ -143,6 +146,23 @@ class BookshelfGui():
             amazon_btn.pack(side=LEFT)
             startover_btn = Button(post_frame, text="Start over", bg=self.colors['bad'], command = lambda: self.start_over(book_div, book_tree, post_frame))
             startover_btn.pack(side=LEFT)
+    
+    def portal_import(self):
+        filetypes = [
+        ('HTML files', '*.html')
+        ]
+
+        filename = fd.askopenfilename(
+            title='Import Connect HTML',
+            initialdir='/',
+            filetypes=filetypes)
+
+        courses = bsh.portal_parse(filename)
+        if not courses:
+            tkinter.messagebox.showinfo('Unable to parse','A problem was encountered parsing the HTML. Your education system may not be supported for this feature.')
+            
+        for c in courses:
+            self.add_course(None, c, None)
 
     def init_course_select(self, term):
         instructional_div = Frame()
@@ -162,7 +182,11 @@ class BookshelfGui():
         course_add_btn.pack(side=LEFT)
         self.done_btn = Button(course_select_frame, text="Done", bg=self.colors['good'], command = lambda: self.book_search(self.courses))
         self.done_btn.pack(side=LEFT)
-        self.done_btn.config(state=DISABLED)
+        connect_import_frame = Frame()
+        connect_import_frame.pack()
+        self.all_optional_frames.append(connect_import_frame)
+        connect_import_btn = Button(connect_import_frame, text="Import from portal", bg=self.colors['magenta'], command = self.portal_import)
+        connect_import_btn.pack(side=LEFT)
         course_div = Frame()
         course_div.pack()
         self.all_optional_frames.append(course_div)
