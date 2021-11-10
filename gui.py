@@ -1,8 +1,6 @@
 from tkinter import *
 from tkinter import ttk
 import tkinter.messagebox
-from typing import ClassVar
-import tkinter as tk
 from PIL import ImageTk, Image
 import csv
 import main as bsh
