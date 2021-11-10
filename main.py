@@ -3,6 +3,7 @@ import requests
 from fake_headers import Headers
 from difflib import get_close_matches
 from bs4 import BeautifulSoup
+import gui
 
 stores = []
 class store():
@@ -177,4 +178,7 @@ def get_books(college, termid, courses):
                 books.append(material(forcourse, b['publisher'], b['author'], b['title'], b['edition'], b['isbn'], b['priceRangeDisplay']))
         else:
             books.append(material(forcourse, '', '', 'No materials found for this course', '', '', ''))
-    return books 
+    return books
+
+if __name__ == "__main__":
+    gui.BookshelfGui()

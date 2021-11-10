@@ -219,4 +219,5 @@ class BookshelfGui():
         else:
             tkinter.messagebox.showinfo('College not found','Unfortunately, your college was not found. If the spelling is correct, it may not be on bkstr.com.')
 
-BookshelfGui()
+if __name__ == "__main__":
+    BookshelfGui()
