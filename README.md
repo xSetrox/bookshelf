@@ -12,3 +12,5 @@ fake_headers==1.0.2
 beautifulsoup4==4.10.0
 Pillow==8.4.0
 ```
+### College not found
+This tool is designed to work with bkstr.com. If your college does not use bkstr.com, you cannot use this tool. 
