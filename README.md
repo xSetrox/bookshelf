@@ -13,6 +13,6 @@ beautifulsoup4==4.10.0
 Pillow==8.4.0
 ```
 ### Import from school portal
-You will need to go to your "student detail schedule" page on your school portal for the semester you selected, then hit ctrl+s > save as html only. Then when prompted, click to import that file. If supported, all your courses will fill in, if not you will be notified that it's not supported.  
+You will need to go to your "student detail schedule" page on your school portal for the semester you selected, then hit ctrl+s > save as html only. Then when prompted, click "import from portal" to import that file. If supported, all your courses will fill in, if not you will be notified that it's not supported.  
 ### College not found
 This tool is designed to work with bkstr.com. If your college does not use bkstr.com, you cannot use this tool. 
