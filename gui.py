@@ -54,6 +54,8 @@ class BookshelfGui():
             tkinter.messagebox.showinfo('Invalid course','Invalid course entry. Please enter courses in a format such as CISC-371-DFA.')
             return
         else:
+            if cname in self.course_listings:
+                return
             course_frame = Frame()
             course_frame.pack()
             self.all_optional_frames.append(course_frame)
