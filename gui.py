@@ -203,9 +203,9 @@ class BookshelfGui():
             search_res_frame.pack()
             self.all_optional_frames.append(search_res_frame)
             self.c_search_btn.config(state=DISABLED)
-            self.c_search.config(state=DISABLED)
             self.c_search.delete(0, END)
             self.c_search.insert(0, search.storename)
+            self.c_search.config(state=DISABLED)
             self.college = search
             term_label = ttk.Label(search_res_frame, text="Select what term you're attending: ")
             term_label.pack(side=LEFT)
