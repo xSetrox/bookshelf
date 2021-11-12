@@ -18,7 +18,7 @@ class BookshelfGui():
         self.logo_lbl = ttk.Label(self.root, image=self.logo, width=10)
         self.logo_lbl.pack()
         self.root.update()
-        self.root.minsize(800, 500)
+        self.root.minsize(600, 500)
         self.search_frame = Frame()
         self.search_frame.pack()
         self.all_optional_frames.append(self.search_frame)
@@ -81,7 +81,8 @@ class BookshelfGui():
 
     def amazon_isbn_search(self, data):
         for e in data:
-            webbrowser.open("https://www.amazon.com/s?k=" + e[5])
+            if e[5]:
+                webbrowser.open("https://www.amazon.com/s?k=" + e[5])
 
     def start_over(self, book_div, book_tree, post_frame):
         book_div.pack_forget()
