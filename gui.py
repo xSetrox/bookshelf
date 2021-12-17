@@ -15,6 +15,8 @@ class BookshelfGui():
         self.colleges = bsh.get_college_ids()
         self.root = Tk()
         self.logo = ImageTk.PhotoImage(Image.open('./bookshelf.png'))
+        self.icon = ImageTk.PhotoImage(Image.open('./bookshelf_icon.png'))
+        self.root.iconphoto(False, self.icon)
         self.logo_lbl = ttk.Label(self.root, image=self.logo, width=10)
         self.logo_lbl.pack()
         self.root.update()
